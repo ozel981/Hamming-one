@@ -4,14 +4,12 @@
 
 #include <stdio.h>
 
+#include "DataGenerator.h";
+
 int main()
 {
 	int l, n, x;
-	printf("Enter set of vectors count: ");
-	scanf("%d", &n);
-	printf("Enter vector length: ");
-	scanf("%d", &l);
-	printf("Find the number of vectors pairs with Hamming one distance by \n 1.CPU \n 2.GPU \n:");
+	printf("Find the number of vectors pairs with Hamming one distance by \n 1.CPU \n 2.GPU \n 3.Generate test data\n:");
 	scanf("%d", &x);
 	if (x == 1)
 	{
@@ -20,6 +18,14 @@ int main()
 	if (x == 2)
 	{
 		printf("Sory no GPU version. \n");
+	}
+	if (x == 3)
+	{
+		printf("Enter set of vectors count: ");
+		scanf("%d", &n);
+		printf("Enter vector length: ");
+		scanf("%d", &l);
+		GenerateData("test2", n, l);
 	}
 
     return 0;
