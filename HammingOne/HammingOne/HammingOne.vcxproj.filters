@@ -4,18 +4,27 @@
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="HammingTestOneData">
+    <Filter Include="HammingOneTestData">
       <UniqueIdentifier>{06eaf908-35f6-49b4-9878-db41be30f736}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPU Hamming One">
+      <UniqueIdentifier>{17b5365c-7118-4cc0-9885-dd85654382a7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DataGenerator.cpp">
-      <Filter>HammingTestOneData</Filter>
+      <Filter>HammingOneTestData</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUHammingOne.cpp">
+      <Filter>CPU Hamming One</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataGenerator.h">
-      <Filter>HammingTestOneData</Filter>
+      <Filter>HammingOneTestData</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUHammingOne.h">
+      <Filter>CPU Hamming One</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

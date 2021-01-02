@@ -89,9 +89,11 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPUHammingOne.cpp" />
     <ClCompile Include="DataGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPUHammingOne.h" />
     <ClInclude Include="DataGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,7 +4,8 @@
 
 #include <stdio.h>
 
-#include "DataGenerator.h";
+#include "DataGenerator.h"
+#include "CPUHammingOne.h"
 
 int main()
 {
@@ -13,7 +14,8 @@ int main()
 	scanf("%d", &x);
 	if (x == 1)
 	{
-		printf("Sory no CPU version. \n");
+		int count = CPUHammingOneCount("test1");
+		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 2)
 	{
