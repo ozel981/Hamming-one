@@ -2,6 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="GPUHammingOne.cu">
+      <Filter>GPU Hamming One</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="HammingOneTestData">
@@ -9,6 +12,15 @@
     </Filter>
     <Filter Include="CPU Hamming One">
       <UniqueIdentifier>{17b5365c-7118-4cc0-9885-dd85654382a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPU Hamming One">
+      <UniqueIdentifier>{47087c2d-8f4a-4922-91a8-d421d0af9673}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestDataReader">
+      <UniqueIdentifier>{30faf0cb-18e1-453e-9465-1906ce901008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data">
+      <UniqueIdentifier>{1a896f01-099d-48bd-a9bb-557b2bc2c01d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -18,6 +30,9 @@
     <ClCompile Include="CPUHammingOne.cpp">
       <Filter>CPU Hamming One</Filter>
     </ClCompile>
+    <ClCompile Include="ReadData.cpp">
+      <Filter>TestDataReader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataGenerator.h">
@@ -25,6 +40,15 @@
     </ClInclude>
     <ClInclude Include="CPUHammingOne.h">
       <Filter>CPU Hamming One</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUHammingOne.cuh">
+      <Filter>GPU Hamming One</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadData.h">
+      <Filter>TestDataReader</Filter>
+    </ClInclude>
+    <ClInclude Include="Data.h">
+      <Filter>Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

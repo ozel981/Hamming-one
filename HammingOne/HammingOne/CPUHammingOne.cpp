@@ -1,56 +1,35 @@
 #include "CPUHammingOne.h"
+#include <stdio.h>
 
 using namespace std;
 
-int HammingDistance(string vector1, string vector2);
+bool IsHammingOneDistance(bool* v1, bool* v2, int length);
 
-int CPUHammingOneCount(string fileName)
+int CPUHammingOneCount(Data* data)
 {
-	string vector;
-
-	ifstream dataFile(fileName + ".txt");
-
-	int n = std::count(std::istreambuf_iterator<char>(dataFile),
-		std::istreambuf_iterator<char>(), '\n');
-
-	string* set = new string[n];
-
-	int iterator = 0;
-
-	dataFile.seekg(0);
-	
-	while (getline(dataFile, vector)) 
-	{		
-		set[iterator++] = vector;
-	}
-
 	int count = 0;
 
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < data->count; i++)
 	{
-		for (int j = i + 1; j < n; j++)
+		for (int j = i + 1; j < data->count; j++)
 		{
-			if (HammingDistance(set[i], set[j]) == 1)
-			{
-				count++;
-			}
+			if (IsHammingOneDistance(data->set[i], data->set[j], data->length)) count++;
 		}
 	}
-
-	dataFile.close();
 
 	return count;
 }
 
-int HammingDistance(string vector1, string vector2)
+bool IsHammingOneDistance(bool* v1, bool* v2, int length)
 {
 	int distance = 0;
-	for (int i = 0; i < vector1.length(); i++)
+	for (int i = 0; i < length; i++)
 	{
-		if (vector1[i] != vector2[i])
+		if (v1[i] != v2[i])
 		{
 			distance++;
 		}
+		if (distance > 1) break;		
 	}
-	return distance;
+	return distance == 1;
 }

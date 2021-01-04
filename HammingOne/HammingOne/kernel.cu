@@ -6,6 +6,10 @@
 
 #include "DataGenerator.h"
 #include "CPUHammingOne.h"
+#include "GPUHammingOne.cuh"
+#include "ReadData.h"
+
+extern "C" int GPUHammingOneCount(Data* data);
 
 int main()
 {
@@ -14,12 +18,13 @@ int main()
 	scanf("%d", &x);
 	if (x == 1)
 	{
-		int count = CPUHammingOneCount("test1");
+		int count = CPUHammingOneCount(&ReadData("test1"));
 		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 2)
 	{
-		printf("Sory no GPU version. \n");
+		int count = GPUHammingOneCount(&ReadData("test1"));
+		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 3)
 	{

@@ -1,6 +1,4 @@
 #pragma once
-#include <string>
-#include <iostream>
-#include <fstream>
+#include "Data.h"
 
-int CPUHammingOneCount(std::string fileName);
+int CPUHammingOneCount(Data* data);
