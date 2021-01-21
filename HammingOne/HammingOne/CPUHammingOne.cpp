@@ -15,7 +15,7 @@ int CPUHammingOneCount(Data* data)
 			if (IsHammingOneDistance(data->set[i], data->set[j], data->length))
 			{
 				count++;
-				printf("Hamming one distance: [%d]x[%d]\n", i, j);
+				//printf("Hamming one distance: [%d]x[%d]\n", i, j);
 			}
 		}
 	}

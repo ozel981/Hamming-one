@@ -5,6 +5,8 @@
 #include <thrust/execution_policy.h>
 #include <stdio.h>
 
+#define INTERVAL_LENGTH 5
+
 #include "GPUHammingOne.cuh"
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -17,37 +19,13 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 	}
 }
 
-__global__ void CalculateHammingOne(int* val, bool* set, int n, int l, int radius)
+__global__ void CalculateHammingOne(int* val, bool* set, int from, int n, int l, int radius)
 {
-	int index = (blockIdx.x * 1024) + threadIdx.x + (10000 * radius);
+	int index = (blockIdx.x * 1000) + threadIdx.x + (10000 * radius);
 	if (index < n)
 	{
 		int differencesCount;
-		for (int i = index + 1; i < n / 2; i++)
-		{
-			differencesCount = 0;
-			for (int j = 0; j < l; j++)
-			{
-				if (set[index * l + j] != set[i * l + j]) differencesCount++;
-				if (differencesCount > 1) break;
-			}
-			if (differencesCount == 1)
-			{
-				atomicAdd(val, 1);
-				printf("Hamming one distance: [%d]x[%d]\n ", index, i);
-			}
-		}
-	}
-}
-
-__global__ void CalculateHammingOne2(int* val, bool* set, int n, int l, int radius)
-{
-	int index = (blockIdx.x * 1024) + threadIdx.x + (10000 * radius);
-	if (index < n)
-	{
-		int differencesCount;
-		int start = (index + 1) > n / 2 ? (index + 1) : n / 2;
-		for (int i = start; i < n; i++)
+		for (int i = from > index + 1 ? from : index + 1; i < n; i++)
 		{
 			differencesCount = 0;
 			for (int j = 0; j < l; j++)
@@ -86,13 +64,15 @@ extern "C" int GPUHammingOneCount(Data* h_data)
 	cudaMalloc(&d_val, sizeof(int));
 	cudaMemcpy(d_val, &h_val, sizeof(int), cudaMemcpyHostToDevice);
 	for (int radius = 0; radius <= n / 10000; radius++)
-	{	
-		CalculateHammingOne2 << <10, 1000 >> > (d_val, d_set, n, l, radius);	
-	}
-	for (int radius = 0; radius <= n / 10000; radius++)
 	{
-		CalculateHammingOne << <10, 1000 >> > (d_val, d_set, n, l, radius);	
+		for (int i = 0; i < INTERVAL_LENGTH; i++)
+		{
+			int from = i * (n / INTERVAL_LENGTH);
+			int to = (i + 1)*(n / INTERVAL_LENGTH);
+			CalculateHammingOne << <10, 1000 >> > (d_val, d_set, from, to, l, radius);
+		}
 	}
+	
 	cudaMemcpy(&h_val, d_val, sizeof(int), cudaMemcpyDeviceToHost);
 
 

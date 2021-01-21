@@ -24,7 +24,6 @@ int main()
 	if (x == 2)
 	{
 		int count = GPUHammingOneCount(&ReadData("test3"));
-		std::cout << count << std::endl;
 		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 3)
