@@ -1,63 +1,81 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include <thrust/reduce.h>
+#include <thrust/execution_policy.h>
 
 
 #include "GPUHammingOne.cuh"
 
-/*__device__ bool IsHammingOne(std::string s1, std::string s2)
-{
-	int count = 0;
-	for (int i = 0; i < s1.length(); i++)
-	{
-		if (s1[i] != s2[i]) count++;
-		if (count > 1) return false;
-	}
-	return count == 1;
-}
-*/
-__global__ void CalculateHammingOne(int* count, Data* d_data)
+__global__ void CalculateHammingOne(int* count, bool* set, int n, int l)
 {
 	int index = (blockIdx.x * 1024) + threadIdx.x;
-
-	if (index < d_data->count)
+	if (index < (n + 1) / 2)
 	{
-		count[index] = d_data->set[index][1];
-		/*for (int i = index + 1; i < d_data->count; i++)
+		count[index] = 0;
+		for (int i = index + 1; i < n; i++)
 		{
-			//if (IsHammingOne(set[index], set[i])) counts[index]++;
 			int differencesCount = 0;
-			for (int j = 0; j < d_data->length; j++)
+			for (int j = 0; j < l; j++)
 			{
-				if (d_data->set[index][j] != d_data->set[i][j]) differencesCount++;
+				if (set[index * l + j] != set[i * l + j]) differencesCount++;
 				if (differencesCount > 1) break;
 			}
-			if (differencesCount == 1) count[index]+=1;
-		}*/
+			if (differencesCount == 1)
+			{
+				count[index] += 1;
+				printf("Hamming one distance: [%d]x[%d]\n", index, i);
+			}
+		}	
+		if (n - 1 - index != index)
+		{
+			index = n - 1 - index;
+			count[index] = 0;
+			for (int i = index + 1; i < n; i++)
+			{
+				int differencesCount = 0;
+				for (int j = 0; j < l; j++)
+				{
+					if (set[index * l + j] != set[i * l + j]) differencesCount++;
+					if (differencesCount > 1) break;
+				}
+				if (differencesCount == 1)
+				{
+					count[index] += 1;
+					printf("Hamming one distance: [%d]x[%d]\n", index, i);
+				}
+			}
+		}
 	}
 }
 
 
 extern "C" int GPUHammingOneCount(Data* h_data)
 {
-	Data* d_data;
+	//Data* d_data;
 	int n = h_data->count;
-	int* d_count;
+	int l = h_data->length;
+	bool* h_set = new bool[l*n];
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < l; j++)
+		{
+			h_set[i * l + j] = h_data->set[i][j];
+		}
+	}
+	bool* d_set;
+	cudaMalloc((void**)&d_set, l * n * sizeof(bool));
+	cudaMemcpy(d_set, h_set, l * n * sizeof(bool), cudaMemcpyHostToDevice);
 	int* h_count = new int[n];
-	cudaMalloc((void**)&d_data, sizeof(Data));
+	int* d_count;
 	cudaMalloc((void**)&d_count, n * sizeof(int));
-	cudaMemcpy(d_data, h_data, sizeof(Data), cudaMemcpyHostToDevice);
-	CalculateHammingOne << <1 + (n / 1024), 1024 >> > (d_count, d_data);
+	int ndiv2 = n / 2;
+	CalculateHammingOne << <1 + (ndiv2 / 1024), 1024 >> > (d_count, d_set, n, l);
 	cudaMemcpy(h_count, d_count, n * sizeof(int), cudaMemcpyDeviceToHost);
 
 	int count = 0;
 
-	for (int i = 0; i < n; i++)
-	{
-		count += h_count[i];
-	}
-
 	cudaFree(d_count);
-	cudaFree(d_data);
-	return count;
+	cudaFree(d_set);
+	return thrust::reduce(thrust::host, h_count, h_count + n, 0);
 }
