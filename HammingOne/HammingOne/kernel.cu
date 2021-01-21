@@ -18,12 +18,13 @@ int main()
 	scanf("%d", &x);
 	if (x == 1)
 	{
-		int count = CPUHammingOneCount(&ReadData("test1"));
+		int count = CPUHammingOneCount(&ReadData("test3"));
 		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 2)
 	{
-		int count = GPUHammingOneCount(&ReadData("test1"));
+		int count = GPUHammingOneCount(&ReadData("test3"));
+		std::cout << count << std::endl;
 		printf("Hamming one distance count: %d \n", count);
 	}
 	if (x == 3)
@@ -32,7 +33,7 @@ int main()
 		scanf("%d", &n);
 		printf("Enter vector length: ");
 		scanf("%d", &l);
-		GenerateData("test2", n, l);
+		GenerateData("test3", n, l);
 	}
 
     return 0;

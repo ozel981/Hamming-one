@@ -3,19 +3,29 @@
 #include "device_launch_parameters.h"
 #include <thrust/reduce.h>
 #include <thrust/execution_policy.h>
-
+#include <stdio.h>
 
 #include "GPUHammingOne.cuh"
 
-__global__ void CalculateHammingOne(int* count, bool* set, int n, int l)
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
-	int index = (blockIdx.x * 1024) + threadIdx.x;
-	if (index < (n + 1) / 2)
+	if (code != cudaSuccess)
 	{
-		count[index] = 0;
-		for (int i = index + 1; i < n; i++)
+		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		if (abort) exit(code);
+	}
+}
+
+__global__ void CalculateHammingOne(int* val, bool* set, int n, int l, int radius)
+{
+	int index = (blockIdx.x * 1024) + threadIdx.x + (10000 * radius);
+	if (index < n)
+	{
+		int differencesCount;
+		for (int i = index + 1; i < n / 2; i++)
 		{
-			int differencesCount = 0;
+			differencesCount = 0;
 			for (int j = 0; j < l; j++)
 			{
 				if (set[index * l + j] != set[i * l + j]) differencesCount++;
@@ -23,27 +33,32 @@ __global__ void CalculateHammingOne(int* count, bool* set, int n, int l)
 			}
 			if (differencesCount == 1)
 			{
-				count[index] += 1;
-				printf("Hamming one distance: [%d]x[%d]\n", index, i);
+				atomicAdd(val, 1);
+				printf("Hamming one distance: [%d]x[%d]\n ", index, i);
 			}
-		}	
-		if (n - 1 - index != index)
+		}
+	}
+}
+
+__global__ void CalculateHammingOne2(int* val, bool* set, int n, int l, int radius)
+{
+	int index = (blockIdx.x * 1024) + threadIdx.x + (10000 * radius);
+	if (index < n)
+	{
+		int differencesCount;
+		int start = (index + 1) > n / 2 ? (index + 1) : n / 2;
+		for (int i = start; i < n; i++)
 		{
-			index = n - 1 - index;
-			count[index] = 0;
-			for (int i = index + 1; i < n; i++)
+			differencesCount = 0;
+			for (int j = 0; j < l; j++)
 			{
-				int differencesCount = 0;
-				for (int j = 0; j < l; j++)
-				{
-					if (set[index * l + j] != set[i * l + j]) differencesCount++;
-					if (differencesCount > 1) break;
-				}
-				if (differencesCount == 1)
-				{
-					count[index] += 1;
-					printf("Hamming one distance: [%d]x[%d]\n", index, i);
-				}
+				if (set[index * l + j] != set[i * l + j]) differencesCount++;
+				if (differencesCount > 1) break;
+			}
+			if (differencesCount == 1)
+			{
+				atomicAdd(val, 1);
+				printf("Hamming one distance: [%d]x[%d]\n ", index, i);
 			}
 		}
 	}
@@ -66,16 +81,25 @@ extern "C" int GPUHammingOneCount(Data* h_data)
 	bool* d_set;
 	cudaMalloc((void**)&d_set, l * n * sizeof(bool));
 	cudaMemcpy(d_set, h_set, l * n * sizeof(bool), cudaMemcpyHostToDevice);
-	int* h_count = new int[n];
-	int* d_count;
-	cudaMalloc((void**)&d_count, n * sizeof(int));
-	int ndiv2 = n / 2;
-	CalculateHammingOne << <1 + (ndiv2 / 1024), 1024 >> > (d_count, d_set, n, l);
-	cudaMemcpy(h_count, d_count, n * sizeof(int), cudaMemcpyDeviceToHost);
+	int h_val = 0;
+	int* d_val;
+	cudaMalloc(&d_val, sizeof(int));
+	cudaMemcpy(d_val, &h_val, sizeof(int), cudaMemcpyHostToDevice);
+	for (int radius = 0; radius <= n / 10000; radius++)
+	{	
+		CalculateHammingOne2 << <10, 1000 >> > (d_val, d_set, n, l, radius);	
+	}
+	for (int radius = 0; radius <= n / 10000; radius++)
+	{
+		CalculateHammingOne << <10, 1000 >> > (d_val, d_set, n, l, radius);	
+	}
+	cudaMemcpy(&h_val, d_val, sizeof(int), cudaMemcpyDeviceToHost);
 
-	int count = 0;
 
-	cudaFree(d_count);
+	gpuErrchk(cudaPeekAtLastError());
+	
+
 	cudaFree(d_set);
-	return thrust::reduce(thrust::host, h_count, h_count + n, 0);
+
+	return h_val;
 }
