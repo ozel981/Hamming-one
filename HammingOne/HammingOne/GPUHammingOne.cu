@@ -4,8 +4,11 @@
 #include <thrust/reduce.h>
 #include <thrust/execution_policy.h>
 #include <stdio.h>
+#include <iostream>
+#include <time.h>
+#include <fstream>
 
-#define INTERVAL_LENGTH 5
+#define INTERVAL_LENGTH 100
 
 #include "GPUHammingOne.cuh"
 
@@ -19,14 +22,18 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 	}
 }
 
+
+
 __global__ void CalculateHammingOne(int* val, bool* set, int from, int n, int l, int radius)
 {
 	int index = (blockIdx.x * 1000) + threadIdx.x + (10000 * radius);
 	if (index < n)
 	{
 		int differencesCount;
+		//int count = 0;
 		for (int i = from > index + 1 ? from : index + 1; i < n; i++)
 		{
+			//rowsxrows[i + index * n] = false;
 			differencesCount = 0;
 			for (int j = 0; j < l; j++)
 			{
@@ -35,8 +42,8 @@ __global__ void CalculateHammingOne(int* val, bool* set, int from, int n, int l,
 			}
 			if (differencesCount == 1)
 			{
+				printf("Hamming one distance rows nr : [%d]x[%d]\n", index, i);
 				atomicAdd(val, 1);
-				printf("Hamming one distance: [%d]x[%d]\n ", index, i);
 			}
 		}
 	}
@@ -49,6 +56,7 @@ extern "C" int GPUHammingOneCount(Data* h_data)
 	int n = h_data->count;
 	int l = h_data->length;
 	bool* h_set = new bool[l*n];
+	bool* h_rows = new bool[n*n];
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < l; j++)
@@ -72,12 +80,10 @@ extern "C" int GPUHammingOneCount(Data* h_data)
 			CalculateHammingOne << <10, 1000 >> > (d_val, d_set, from, to, l, radius);
 		}
 	}
-	
 	cudaMemcpy(&h_val, d_val, sizeof(int), cudaMemcpyDeviceToHost);
 
 
 	gpuErrchk(cudaPeekAtLastError());
-	
 
 	cudaFree(d_set);
 
